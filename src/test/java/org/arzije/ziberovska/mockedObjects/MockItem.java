@@ -8,4 +8,8 @@ public class MockItem extends Item {
         super(id);
     }
 
+    public String getId(){
+        return super.id;
+    }
+
 }

@@ -9,25 +9,51 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
+        <!-- Set the source and target version for compilation -->
         <maven.compiler.source>20</maven.compiler.source>
         <maven.compiler.target>20</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
+        <!-- JUnit Jupiter for testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
+            <version>5.9.2</version>
             <scope>test</scope>
         </dependency>
 
+        <!-- Mockito for mocking in tests -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.3.1</version>
+            <version>5.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!-- Profile for running tests without class sharing -->
+        <profile>
+            <id>no-class-sharing-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <!-- Disable class sharing -->
+                            <argLine>-Xshare:off</argLine>
+                            <excludes>
+                                <!-- Exclude tests that should not run without class sharing -->
+
+                                <exclude>**/*ClassSharingTest.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

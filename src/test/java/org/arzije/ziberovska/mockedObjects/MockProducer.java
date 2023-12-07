@@ -8,13 +8,11 @@ public class MockProducer implements Producer{
 
     @Override
     public void run() {
-        // Implementera logik för att simulera producentens beteende
         isRunning = true;
     }
 
     @Override
     public void stopRunning() {
-        // Implementera logik för att stoppa producenten
         isRunning = false;
     }
 

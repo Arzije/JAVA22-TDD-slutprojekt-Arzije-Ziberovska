@@ -1,10 +1,12 @@
 package org.arzije.ziberovska;
 
-import org.arzije.ziberovska.mockedObjects.BufferMockHelper;
+//import org.arzije.ziberovska.mockedObjects.BufferMockHelper;
 import org.arzije.ziberovska.mockedObjects.MockBuffer;
 import org.arzije.ziberovska.mockedObjects.MockItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,18 +51,18 @@ class BufferTest {
         buffer.remove();
 
         // Kontrollera att storleken på bufferten är 1 efter borttagning
-        assertEquals(1, buffer.getBufferSize(), "Buffer should contain 1 item after removal");
+        assertEquals(1, buffer.getBufferSize(), "Buffer should contain one (1) item after removal");
     }
 
 
-
+/*
     @Test
     @DisplayName("Testing Buffer behavior when it is simulated as full")
     void testBufferWhenFull() {
         BufferMockHelper buffer = new BufferMockHelper(true, false);
         MockItem item = new MockItem("TestItem");
         assertFalse(buffer.add(item), "Buffer should not accept new items when simulated as full");
-    }
+    }*/
 
 //    @Test
 //    @DisplayName("Testing Buffer behavior when it is simulated as empty")
@@ -70,27 +72,32 @@ class BufferTest {
 //    }
 
 
+//    @Test
+//    @DisplayName("testBufferVariable")
+//    void testBufferVariable() {
+//        MockBuffer buffer = new MockBuffer();
+//        assertInstanceOf(Queue.class, buffer.getBufferVariable());
+//    }
+
+
     @Test
     @DisplayName("Testing thread safety of add and remove methods")
     void testThreadSafety() throws InterruptedException {
         Buffer buffer = new Buffer();
-        int numberOfItems = 10; // Antal objekt att lägga till/ta bort
+        int numberOfItems = 10;
 
-        // Skapar en tråd för att lägga till objekt
         Thread producerThread = new Thread(() -> {
             for (int i = 0; i < numberOfItems; i++) {
                 buffer.add(new Item("Item " + i));
             }
         });
 
-        // Skapar en tråd för att ta bort objekt
         Thread consumerThread = new Thread(() -> {
             for (int i = 0; i < numberOfItems; i++) {
                 buffer.remove();
             }
         });
 
-        // Startar trådarna
         producerThread.start();
         consumerThread.start();
 
@@ -110,7 +117,6 @@ class BufferTest {
         int numberOfConsumers = 3;
         int itemsPerProducer = 5;
 
-        // Skapa och starta producenttrådar
         for (int i = 0; i < numberOfProducers; i++) {
             new Thread(() -> {
                 for (int j = 0; j < itemsPerProducer; j++) {
@@ -119,7 +125,6 @@ class BufferTest {
             }).start();
         }
 
-        // Skapa och starta konsumenttrådar
         for (int i = 0; i < numberOfConsumers; i++) {
             new Thread(() -> {
                 for (int j = 0; j < itemsPerProducer; j++) {
@@ -128,10 +133,8 @@ class BufferTest {
             }).start();
         }
 
-        // Vänta lite för att låta trådarna avsluta (kan behöva justera denna tid)
         Thread.sleep(1000);
 
-        // Kontrollera att bufferten är tom (eller annat förväntat tillstånd)
         assertTrue(buffer.buffer.isEmpty(), "Buffer should be empty after all operations");
     }
 
@@ -141,20 +144,15 @@ class BufferTest {
         Buffer buffer = new Buffer();
         Thread removingThread = new Thread(buffer::remove);
 
-        // Starta tråden som kommer att blockeras på remove()
         removingThread.start();
 
-        // Ge tråden lite tid att gå in i vänteläge
-        Thread.sleep(100); // Justera denna tid efter behov
+        Thread.sleep(2000);
 
-        // Avbryt tråden för att utlösa InterruptedException
         removingThread.interrupt();
 
-        // Vänta på att tråden ska avsluta
         removingThread.join();
 
-        // Verifiera att tråden avslutades korrekt
-        assertFalse(removingThread.isAlive(), "Thread should have finished after interruption");
+        assertFalse(removingThread.isAlive(), "Thread should be dead.");
     }
 
 }

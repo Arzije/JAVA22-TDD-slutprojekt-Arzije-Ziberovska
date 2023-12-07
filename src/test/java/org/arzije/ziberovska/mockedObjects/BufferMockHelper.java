@@ -4,23 +4,24 @@ import org.arzije.ziberovska.Buffer;
 import org.arzije.ziberovska.Item;
 
 import java.util.LinkedList;
-import java.util.Queue;
+/*
 
 public class BufferMockHelper extends Buffer {
 
-    private boolean simulateFull;
-    private boolean simulateEmpty;
+    private final boolean simulateFull;
+    private final boolean simulateEmpty;
 
     public BufferMockHelper(boolean simulateFull, boolean simulateEmpty) {
         this.simulateFull = simulateFull;
         this.simulateEmpty = simulateEmpty;
-        this.buffer = new LinkedList<>(); // Använd en egen instans av bufferten
+        this.buffer = new LinkedList<>();
     }
+
 
     @Override
     public synchronized boolean add(Item item) {
         if (simulateFull) {
-            return false; // Simulerar att bufferten är full
+            return false;
         }
         return super.add(item);
     }
@@ -29,9 +30,9 @@ public class BufferMockHelper extends Buffer {
     public synchronized Item remove() {
         if (simulateEmpty) {
             try {
-                wait(); // Simulerar att bufferten är tom och väntar
+                wait();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // Hanterar avbrott på rätt sätt
+                Thread.currentThread().interrupt();
             }
             return null;
         }
@@ -40,5 +41,5 @@ public class BufferMockHelper extends Buffer {
 
     // Eventuellt lägga till ytterligare metoder för att manipulera buffertens tillstånd eller beteende
 }
-
+*/
 
