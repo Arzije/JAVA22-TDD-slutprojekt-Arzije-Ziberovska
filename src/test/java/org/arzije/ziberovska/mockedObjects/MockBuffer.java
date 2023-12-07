@@ -12,7 +12,7 @@ public class MockBuffer extends Buffer {
     }
 
     public int getBufferSize(){
-        return buffer.size();
+        return super.buffer.size();
     }
 
     public Queue<Item> getBufferVariable(){

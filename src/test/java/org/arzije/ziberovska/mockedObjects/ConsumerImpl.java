@@ -2,7 +2,7 @@ package org.arzije.ziberovska.mockedObjects;
 
 import org.arzije.ziberovska.Consumer;
 
-public class MockConsumer implements Consumer {
+public class ConsumerImpl implements Consumer {
     private boolean isRunning = false;
 
     @Override
