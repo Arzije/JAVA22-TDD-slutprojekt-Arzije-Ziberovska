@@ -1,7 +1,9 @@
 package org.arzije.ziberovska;
 
 import org.arzije.ziberovska.mockedObjects.MockBuffer;
+import org.arzije.ziberovska.mockedObjects.MockConsumer;
 import org.arzije.ziberovska.mockedObjects.MockItem;
+import org.arzije.ziberovska.mockedObjects.MockProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,153 +15,140 @@ import static org.junit.jupiter.api.Assertions.*;
 class BufferTest {
 
     private MockBuffer buffer;
-    private MockItem item;
+    private MockProducer producer;
+    private MockConsumer consumer;
+
     @BeforeEach
     void setUp() {
         buffer = new MockBuffer();
+        producer = new MockProducer(buffer);
+        consumer = new MockConsumer(buffer);
     }
 
     @Test
-    @DisplayName("Testing if add item in Buffer is added")
-    void testBufferItemAdd() {
-        item = new MockItem("TestItem");
-        assertTrue(buffer.getBufferVariable().add(item), "Item added");
+    @DisplayName("Test producer adds item to buffer")
+    void testProducerAddsItem() {
+        producer.run();
+        assertFalse(buffer.getBufferList().isEmpty(), "Buffer should not be empty after producer runs");
     }
 
     @Test
-    @DisplayName("Testing if remove item from Buffer is removed")
-    void testBufferItemRemove() {
-        item = new MockItem("TestItem");
-        buffer.add(item);
-        assertEquals(item, buffer.getBufferVariable().remove());
-    }
-
-
-    @Test
-    @DisplayName("Test if items are added correctly to the buffer")
-    void testItemsAddedToBuffer() {
-        buffer.add(new Item("Item1"));
-        buffer.add(new Item("Item2"));
-        assertEquals(2, buffer.getBufferSize(), "Buffer should contain 2 items");
+    @DisplayName("Test consumer removes item from buffer")
+    void testConsumerRemovesItem() {
+        producer.run();
+        consumer.run();
+        assertTrue(buffer.getBufferList().isEmpty(), "Buffer should be empty after consumer runs");
     }
 
     @Test
-    @DisplayName("Test if items are removed correctly from the buffer")
-    void testItemsRemovedFromBuffer() {
-        buffer.add(new Item("Item1"));
-        buffer.add(new Item("Item2"));
-        buffer.remove();
+    @DisplayName("Test removing single item from buffer")
+    void testRemoveSingleItem() {
+        producer.run();
+        assertFalse(buffer.getBufferList().isEmpty(), "Buffer should not be empty after producer runs");
 
-        assertEquals(1, buffer.getBufferSize(), "Buffer should contain one (1) item after removal");
+        consumer.run();
+        assertTrue(buffer.getBufferList().isEmpty(), "Buffer should be empty after consumer runs");
     }
 
     @Test
-    @DisplayName("Test isEmpty method on buffer")
-    void testIsEmpty() {
-        assertTrue(buffer.getBufferVariable().isEmpty(), "Buffer should be empty initially");
+    @DisplayName("Test adding multiple items and then removing them")
+    void testAddingAndRemovingMultipleItems() {
+        int numberOfItemsToAdd = 10;
+        for (int i = 0; i < numberOfItemsToAdd; i++) {
+            producer.run();
+        }
+        assertEquals(numberOfItemsToAdd, buffer.getBufferSize(), "Buffer should have 5 items");
 
-        buffer.add(new MockItem("TestItem"));
-        assertFalse(buffer.getBufferVariable().isEmpty(), "Buffer should not be empty after adding an item");
-
-        buffer.remove();
-        assertTrue(buffer.getBufferVariable().isEmpty(), "Buffer should be empty after removing the item");
+        for (int i = 0; i < numberOfItemsToAdd; i++) {
+            consumer.run();
+        }
+        assertTrue(buffer.getBufferList().isEmpty(), "Buffer should be empty after removing all items");
     }
 
     @Test
-    @DisplayName("Test NullPointerException item with null id")
-    public void testItemWithNullId() {
+    @DisplayName("Test buffer handles null item")
+    void testBufferHandlesNullItem() {
         assertThrows(NullPointerException.class, () -> new MockItem(null));
     }
 
 
     @Test
-    @DisplayName("Testing thread safety of add and remove methods")
-    void testThreadSafety() throws InterruptedException {
-        int numberOfItems = 10;
+    @DisplayName("Testing thread safety with multiple producers and consumers")
+    void testThreadSafetyWithMultipleProducersAndConsumers() throws InterruptedException {
+        int numberOfProducers = 3;
+        int numberOfConsumers = 3;
+        int itemsPerProducer = 10;
+
+        Thread[] producerThreads = new Thread[numberOfProducers];
+        Thread[] consumerThreads = new Thread[numberOfConsumers];
+
+        for (int i = 0; i < numberOfProducers; i++) {
+            producerThreads[i] = new Thread(() -> {
+                for (int j = 0; j < itemsPerProducer; j++) {
+                    producer.run();
+                }
+            });
+            producerThreads[i].start();
+        }
+
+        for (int i = 0; i < numberOfConsumers; i++) {
+            consumerThreads[i] = new Thread(() -> {
+                for (int j = 0; j < itemsPerProducer; j++) {
+                    consumer.run();
+                }
+            });
+            consumerThreads[i].start();
+        }
+
+        for (Thread t : producerThreads) {
+            t.join();
+        }
+        for (Thread t : consumerThreads) {
+            t.join();
+        }
+
+        assertTrue(buffer.getBufferList().isEmpty(), "Buffer should be empty after all operations");
+    }
+
+
+    @Test
+    @DisplayName("Test concurrent production and consumption")
+    void testConcurrentProductionAndConsumption() throws InterruptedException {
+        int numberOfOperations = 50;
 
         Thread producerThread = new Thread(() -> {
-            for (int i = 0; i < numberOfItems; i++) {
-                buffer.add(new Item("Item " + i));
+            for (int i = 0; i < numberOfOperations; i++) {
+                producer.run();
             }
         });
 
         Thread consumerThread = new Thread(() -> {
-            for (int i = 0; i < numberOfItems; i++) {
-                buffer.remove();
+            for (int i = 0; i < numberOfOperations; i++) {
+                consumer.run();
             }
         });
 
         producerThread.start();
         consumerThread.start();
 
-        // Väntar på att båda trådarna ska avsluta
         producerThread.join();
         consumerThread.join();
 
-        // Verifiera buffertens tillstånd
-        assertTrue(buffer.getBufferVariable().isEmpty(), "Buffer should be empty after all add and remove operations");
+        assertTrue(buffer.getBufferList().isEmpty(), "Buffer should be empty after concurrent production and consumption");
     }
 
-    @Test
-    @DisplayName("Testing Buffer with multiple producers and consumers")
-    void testBufferWithMultipleThreads() throws InterruptedException {
-        int numberOfProducers = 3;
-        int numberOfConsumers = 3;
-        int itemsPerProducer = 5;
 
-        for (int i = 0; i < numberOfProducers; i++) {
-            new Thread(() -> {
-                for (int j = 0; j < itemsPerProducer; j++) {
-                    buffer.add(new Item("Item " + j));
-                }
-            }).start();
-        }
 
-        for (int i = 0; i < numberOfConsumers; i++) {
-            new Thread(() -> {
-                for (int j = 0; j < itemsPerProducer; j++) {
-                    buffer.remove();
-                }
-            }).start();
-        }
-
-        Thread.sleep(1000);
-
-        assertTrue(buffer.getBufferVariable().isEmpty(), "Buffer should be empty after all operations");
-    }
-
-    @Test
-    @DisplayName("Ensure buffer handles concurrent access")
-    void testConcurrentAccess() throws InterruptedException {
-        Runnable addTask = () -> {
-            for (int i = 0; i < 100; i++) {
-                buffer.add(new MockItem("Item " + i));
-            }
-        };
-
-        Thread thread1 = new Thread(addTask);
-        Thread thread2 = new Thread(addTask);
-
-        thread1.start();
-        thread2.start();
-
-        thread1.join();
-        thread2.join();
-
-        assertEquals(200, buffer.getBufferSize(), "Buffer should contain all items added by both threads");
-    }
-
-    /**
-     * Tests the behavior of Buffer's remove method when interrupted during waiting.
-     * This test initiates a thread to perform remove on an empty buffer, causing it to wait.
-     * The thread is then interrupted, leading to an InterruptedException inside remove method.
-     * The test validates that the thread terminates correctly after the interruption,
-     * despite a NoSuchElementException caused by attempting to continue execution post-interruption.
-     */
     @Test
     @DisplayName("Test InterruptedException in remove method")
     void testInterruptedExceptionOnRemove() throws InterruptedException {
-        Thread removingThread = new Thread(buffer::remove);
+        Thread removingThread = new Thread(() -> {
+            try {
+                consumer.run();
+            } catch (NoSuchElementException e) {
+                // Vi ignorerar detta exception eftersom att det är en förväntad bieffekt av att avbryta wait()
+            }
+        });
 
         removingThread.start();
 
@@ -169,34 +158,8 @@ class BufferTest {
 
         removingThread.join();
 
-        assertFalse(removingThread.isAlive(), "Thread should ot be alive.");
+        assertFalse(removingThread.isAlive(), "Thread should not be alive.");
     }
-
-
-
-    /*
-    @Test
-    @DisplayName("Testing Buffer behavior when it is simulated as full")
-    void testBufferWhenFull() {
-        BufferMockHelper buffer = new BufferMockHelper(true, false);
-        MockItem item = new MockItem("TestItem");
-        assertFalse(buffer.add(item), "Buffer should not accept new items when simulated as full");
-    }*/
-
-//    @Test
-//    @DisplayName("Testing Buffer behavior when it is simulated as empty")
-//    void testBufferWhenEmpty() {
-//        BufferMockHelper buffer = new BufferMockHelper(false, true);
-//        assertNull(buffer.remove(), "Buffer should return null when simulated as empty");
-//    }
-
-
-//    @Test
-//    @DisplayName("testBufferVariable")
-//    void testBufferVariable() {
-//        MockBuffer buffer = new MockBuffer();
-//        assertInstanceOf(Queue.class, buffer.getBufferVariable());
-//    }
 
 
 }

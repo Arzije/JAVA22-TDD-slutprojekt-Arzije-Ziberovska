@@ -1,7 +1,7 @@
 package org.arzije.ziberovska;
 
-import org.arzije.ziberovska.Item;
 import org.arzije.ziberovska.mockedObjects.MockItem;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -9,49 +9,50 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ItemTest {
 
+    private MockItem item;
+
+    @BeforeEach
+    void setUp() {
+        item = new MockItem("TestItem");
+    }
+
     @Test
-    @DisplayName("Test Constructor with valid id")
+    @DisplayName("Test Constructor with valid id and test lowercase method")
     void testConstructorWithValidId() {
-        Item item = new Item("ValidId");
-        assertEquals("validid", item.toString(), "Constructor should set id correctly");
+        assertEquals("testitem", item.getId(), "Constructor should set id correctly");
     }
-
-//    @Test
-//    @DisplayName("testItemIdVariable??????")
-//    void testItemIdVariable() {
-//        MockItem item = mock(MockItem.class);
-//
-//        when(item.getId()).thenReturn("potatoe");
-//
-//        String result = item.getId();
-//
-//        verify(item).getId();
-//        assertEquals("potatoe", result);
-//        //assertInstanceOf(String.class, item.id);
-//    }
-
-
-//    @Test
-//    @DisplayName("Test Constructor with null id")
-//    void testConstructorWithNullId() {
-//        Item item = new Item(null);
-//        assertEquals("", item.toString(), "Constructor should handle null id");
-//    }
 
     @Test
-    @DisplayName("Test setId method")
-    void testSetId() {
-        Item item = new Item("initialId");
-        item.setId("NewId");
-        assertEquals("newid", item.toString(), "setId should update id correctly");
+    @DisplayName("Constructor should correctly handle an empty string as ID")
+    public void testConstructorWithEmptyString() {
+        item = new MockItem("");
+        assertEquals("", item.getId(), "ID should handle empty string correctly");
     }
 
-//    @Test
-//    @DisplayName("Test setId with null")
-//    void testSetIdWithNull() {
-//        Item item = new Item("initialId");
-//        item.setId(null);
-//        assertEquals("", item.toString(), "setId should handle null input");
-//    }
+    @Test   
+    @DisplayName("Test item constructor with null id")
+    void testItemWithNullId() {
+        assertThrows(NullPointerException.class, () -> new MockItem(null), "Constructor should throw exception with null id");
+    }
+
+    @Test
+    @DisplayName("Test item set ID with null id")
+    public void testSetIdWithNull() {
+        assertThrows(NullPointerException.class, () -> item.setId(null));
+    }
+
+    @Test
+    @DisplayName("Test setting and getting item id")
+    void testSetAndGetId() {
+        item.setId("SomeId");
+        assertEquals("someid", item.getId(), "Setting and getting id should work correctly");
+    }
+
+    @Test
+    @DisplayName("Test that Set ID converts mixed case ID to lowercase")
+    public void testSetIdWithMixedCase() {
+        item.setId("miXeDCasE");
+        assertEquals("mixedcase", item.getId(), "ID should be converted to lowercase");
+    }
 
 }

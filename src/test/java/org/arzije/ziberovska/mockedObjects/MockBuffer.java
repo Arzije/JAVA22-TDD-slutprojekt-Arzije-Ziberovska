@@ -15,7 +15,7 @@ public class MockBuffer extends Buffer {
         return super.buffer.size();
     }
 
-    public Queue<Item> getBufferVariable(){
+    public Queue<Item> getBufferList(){
         return super.buffer;
     }
 }
