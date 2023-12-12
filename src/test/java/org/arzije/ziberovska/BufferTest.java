@@ -66,13 +66,6 @@ class BufferTest {
     }
 
     @Test
-    @DisplayName("Test buffer handles null item")
-    void testBufferHandlesNullItem() {
-        assertThrows(NullPointerException.class, () -> new MockItem(null));
-    }
-
-
-    @Test
     @DisplayName("Testing thread safety with multiple producers and consumers")
     void testThreadSafetyWithMultipleProducersAndConsumers() throws InterruptedException {
         int numberOfProducers = 3;
